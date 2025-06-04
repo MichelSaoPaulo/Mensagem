@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Enviar WhatsApp para vários números - Envio Controlado</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; max-width: 500px; margin: auto; }
+  input, textarea, button { width: 100%; margin-bottom: 10px; padding: 10px; font-size: 1rem; }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 5px; }
+  .number-item { display: flex; justify-content: space-between; align-items: center; }
+  .remove-btn { background: #d9534f; color: white; border: none; padding: 5px 10px; cursor: pointer; }
+  #status { font-weight: bold; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h2>Enviar WhatsApp para vários números (envio controlado)</h2>
+
+<label for="phoneInput">Número de celular (com código do país, ex: 5511999999999):</label>
+<input type="text" id="phoneInput" placeholder="Digite o número" />
+
+<button id="addNumberBtn">Adicionar número</button>
+
+<h3>Números adicionados:</h3>
+<ul id="numbersList"></ul>
+
+<label for="messageInput">Mensagem padrão:</label>
+<textarea id="messageInput" rows="6"></textarea>
+
+<button id="sendBtn">Enviar WhatsApp para todos</button>
+
+<div id="status"></div>
+
+<script>
+  const phoneInput = document.getElementById('phoneInput');
+  const addNumberBtn = document.getElementById('addNumberBtn');
+  const numbersList = document.getElementById('numbersList');
+  const messageInput = document.getElementById('messageInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const statusDiv = document.getElementById('status');
+
+  let numbers = [];
+
+  // Mensagem padrão conforme solicitado
+  const mensagemPadrao = `Olá! Muito obrigado por fazer parte da equipe PSS2026. Meu nome é Michel, sou professor de matemática atuante, e entendo a importância de um bom material de estudo para garantir sua melhor colocação na atribuição.
+
+Gostaria de informar que, para garantir o acesso à plataforma, é necessário realizar o pagamento no valor de R$100,00. Após o pagamento, por gentileza, envie o comprovante para que possamos liberar seu acesso.
+
+O PIX para pagamento é CPF 264.378.478-24.
+
+Conto com seu comprometimento para seguirmos juntos nessa jornada. Bora para o caminho do sucesso!
+
+Atenciosamente,
+Michel Mariano`;
+
+  // Carrega a mensagem no campo ao iniciar
+  messageInput.value = mensagemPadrao;
+
+  function renderNumbers() {
+    numbersList.innerHTML = '';
+    numbers.forEach((num, index) => {
+      const li = document.createElement('li');
+      li.className = 'number-item';
+      li.textContent = num;
+      const btn = document.createElement('button');
+      btn.textContent = 'Remover';
+      btn.className = 'remove-btn';
+      btn.onclick = () => {
+        numbers.splice(index, 1);
+        renderNumbers();
+      };
+      li.appendChild(btn);
+      numbersList.appendChild(li);
+    });
+  }
+
+  addNumberBtn.onclick = () => {
+    const num = phoneInput.value.trim();
+    if (!num.match(/^\d+$/)) {
+      alert('Digite somente números, sem espaços ou símbolos.');
+      return;
+    }
+    if (numbers.includes(num)) {
+      alert('Número já adicionado.');
+      return;
+    }
+    numbers.push(num);
+    phoneInput.value = '';
+    renderNumbers();
+  };
+
+  async function sendWhatsAppSequentially(nums, message) {
+    for (let i = 0; i < nums.length; i++) {
+      const num = nums[i];
+      statusDiv.textContent = `Enviando para ${num} (${i + 1} de ${nums.length})...`;
+      const url = `https://wa.me/${num}?text=${encodeURIComponent(message)}`;
+      window.open(url, '_blank');
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+    statusDiv.textContent = 'Envio concluído!';
+  }
+
+  sendBtn.onclick = () => {
+    if (numbers.length === 0) {
+      alert('Adicione pelo menos um número.');
+      return;
+    }
+    const message = messageInput.value.trim();
+    if (!message) {
+      alert('Digite uma mensagem.');
+      return;
+    }
+    sendWhatsAppSequentially(numbers, message);
+  };
+</script>
+
+</body>
+</html>
+
